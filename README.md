@@ -21,3 +21,5 @@ interface LogInterface
     public static function debug(string $log, $file = '', $line = 0);
 }
 ```
+
+使用：tests目录
