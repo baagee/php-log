@@ -42,24 +42,19 @@ abstract class LogBase
 
     /**
      * log初始化
-     * @param int    $memoryLimit   log缓存占用PHP最大内存百分比 默认20%
-     * @param string $handler       保存Log的处理类
-     * @param array  $handlerConfig 保存Log的处理类初始化的参数
+     * @param int    $memoryLimitPercent log缓存占用PHP最大内存百分比 默认20 大小限制：>0 && <90
+     * @param string $handler            保存Log的处理类
+     * @param array  $handlerConfig      保存Log的处理类初始化的参数
      */
-    public static function init(int $memoryLimit = 20, string $handler = '', array $handlerConfig = [])
+    public static function init(int $memoryLimitPercent = 20, string $handler = '', array $handlerConfig = [])
     {
         if (self::$isInit === false) {
-            if ($memoryLimit < 0 || $memoryLimit > 90) {
+            if ($memoryLimitPercent < 0 || $memoryLimitPercent > 90) {
                 // 如果百分比小于0 或者大于90% 就使用20%
-                $memoryLimit = 20;
+                $memoryLimitPercent = 20;
             }
-            $memoryPercent  = $memoryLimit / 100;
-            $IniMemoryLimit = ini_get('memory_limit');
-            if ('M' == substr($IniMemoryLimit, -1)) {
-                self::$memoryLimit = intval(intval(substr($IniMemoryLimit, 0, strlen($IniMemoryLimit) - 1) * 1024 * 1024) * $memoryPercent);
-            } else {
-                self::$memoryLimit = intval(intval($IniMemoryLimit) * $memoryPercent);
-            }
+            self::$memoryLimit = self::getMemoryLimit($memoryLimitPercent);
+
             if (!empty($handler)) {
                 self::$handler = $handler;
             }
@@ -67,6 +62,21 @@ abstract class LogBase
             register_shutdown_function(self::class . '::commitLogs');
             self::$isInit = true;
         }
+    }
+
+    /**
+     * 获取缓冲区大小
+     * @param $memoryLimitPercent
+     * @return int
+     */
+    private static function getMemoryLimit($memoryLimitPercent)
+    {
+        $memoryPercent  = $memoryLimitPercent / 100;
+        $IniMemoryLimit = ini_get('memory_limit');
+        if ('M' == substr($IniMemoryLimit, -1)) {
+            $IniMemoryLimit = substr($IniMemoryLimit, 0, strlen($IniMemoryLimit) - 1) * 1024 * 1024;
+        }
+        return intval(intval($IniMemoryLimit) * $memoryPercent);
     }
 
     /**
