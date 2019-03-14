@@ -7,12 +7,15 @@
  */
 
 namespace BaAGee\Log\Base;
+
 /**
+ * 具体保存log的逻辑需要继承此类 实现record方法
  * Class HandlerBase
  * @package BaAGee\Log\Base
  */
 abstract class HandlerBase
 {
+    use ProhibitNewClone;
     /**
      * @var array 配置信息
      */

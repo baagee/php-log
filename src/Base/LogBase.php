@@ -14,6 +14,7 @@ namespace BaAGee\Log\Base;
  */
 abstract class LogBase
 {
+    use ProhibitNewClone;
     /**
      * @var bool 是否初始化Log
      */
@@ -30,13 +31,35 @@ abstract class LogBase
     protected static $logs = [];
 
     /**
+     * @var int log缓存区大小
+     */
+    protected static $memoryLimit = 0;
+
+    /**
+     * @var int
+     */
+    protected static $currentLogSize = 0;
+
+    /**
      * log初始化
+     * @param int    $memoryLimit   log缓存占用PHP最大内存百分比 默认20%
      * @param string $handler       保存Log的处理类
      * @param array  $handlerConfig 保存Log的处理类初始化的参数
      */
-    public static function init(string $handler = '', array $handlerConfig = [])
+    public static function init(int $memoryLimit = 20, string $handler = '', array $handlerConfig = [])
     {
         if (self::$isInit === false) {
+            if ($memoryLimit < 0 || $memoryLimit > 90) {
+                // 如果百分比小于0 或者大于90% 就使用20%
+                $memoryLimit = 20;
+            }
+            $memoryPercent  = $memoryLimit / 100;
+            $IniMemoryLimit = ini_get('memory_limit');
+            if ('M' == substr($IniMemoryLimit, -1)) {
+                self::$memoryLimit = intval(intval(substr($IniMemoryLimit, 0, strlen($IniMemoryLimit) - 1) * 1024 * 1024) * $memoryPercent);
+            } else {
+                self::$memoryLimit = intval(intval($IniMemoryLimit) * $memoryPercent);
+            }
             if (!empty($handler)) {
                 self::$handler = $handler;
             }
@@ -54,7 +77,7 @@ abstract class LogBase
      * @param int    $line  调用处行数
      * @return string
      */
-    protected static function getLogString(string $level, string $log, $file = '', $line = 0)
+    private static function getLogString(string $level, string $log, $file = '', $line = 0)
     {
         if ($file == '' || $line == 0) {
             list($file, $line) = self::getCallFileLine();
@@ -67,7 +90,7 @@ abstract class LogBase
      * 获取调用Log的文件和行数
      * @return array
      */
-    protected static function getCallFileLine()
+    private static function getCallFileLine()
     {
         if (defined('DEBUG_BACKTRACE_IGNORE_ARGS')) {
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
@@ -84,7 +107,16 @@ abstract class LogBase
     public static function flushLogs()
     {
         call_user_func(self::$handler . '::record', self::$logs);
-        self::$logs = [];
+        self::reset();
+    }
+
+    /**
+     * 重置Log相关变量
+     */
+    private static function reset()
+    {
+        self::$currentLogSize = 0;
+        self::$logs           = [];
     }
 
     /**
@@ -108,7 +140,22 @@ abstract class LogBase
      */
     protected static function cacheLog(string $level, string $log, $file = '', $line = 0)
     {
+        if (self::isOutOfMemory()) {
+            self::flushLogs();
+        }
         $level                = strtoupper($level);
-        self::$logs[$level][] = self::getLogString($level, $log, $file, $line);
+        $logString            = self::getLogString($level, $log, $file, $line);
+        self::$currentLogSize += strlen($logString);
+        self::$logs[$level][] = $logString;
+    }
+
+    /**
+     * 判断log大小是否到达log缓存区
+     * @return bool
+     */
+    private static function isOutOfMemory()
+    {
+        // 当前log的缓存大小超过了memory_limit限制的百分之X时，超出缓存
+        return self::$currentLogSize >= self::$memoryLimit;
     }
 }

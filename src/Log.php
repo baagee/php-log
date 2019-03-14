@@ -1,6 +1,6 @@
 <?php
 /**
- * Desc:
+ * Desc: Log类
  * User: baagee
  * Date: 2019/3/14
  * Time: 上午10:17
@@ -17,20 +17,6 @@ use BaAGee\Log\Base\LogInterface;
  */
 class Log extends LogBase implements LogInterface
 {
-    /**
-     * Log constructor.
-     */
-    private function __construct()
-    {
-    }
-
-    /**
-     *
-     */
-    private function __clone()
-    {
-    }
-
     /**
      * @param string $log
      * @param string $file
