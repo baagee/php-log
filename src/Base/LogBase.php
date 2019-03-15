@@ -45,6 +45,7 @@ abstract class LogBase
      * @param int    $memoryLimitPercent log缓存占用PHP最大内存百分比 默认20 大小限制：>0 && <90
      * @param string $handler            保存Log的处理类
      * @param array  $handlerConfig      保存Log的处理类初始化的参数
+     * @throws \Exception
      */
     public static function init(int $memoryLimitPercent = 20, string $handler = '', array $handlerConfig = [])
     {
@@ -56,7 +57,11 @@ abstract class LogBase
             self::$memoryLimit = self::getMemoryLimit($memoryLimitPercent);
 
             if (!empty($handler)) {
-                self::$handler = $handler;
+                if (is_subclass_of($handler, HandlerBase::class)) {
+                    self::$handler = $handler;
+                } else {
+                    throw new \Exception($handler . '没有继承' . HandlerBase::class);
+                }
             }
             call_user_func(self::$handler . '::init', $handlerConfig);
             register_shutdown_function(self::class . '::commitLogs');
