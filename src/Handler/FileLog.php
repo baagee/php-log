@@ -8,13 +8,13 @@
 
 namespace BaAGee\Log\Handler;
 
-use BaAGee\Log\Base\HandlerBase;
+use BaAGee\Log\Base\LogHandlerAbstract;
 
 /**
  * Class FileLog
  * @package BaAGee\Log\Handler
  */
-class FileLog extends HandlerBase
+class FileLog extends LogHandlerAbstract
 {
     /**
      * @var array 配置

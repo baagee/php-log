@@ -10,10 +10,10 @@ namespace BaAGee\Log\Base;
 
 /**
  * 具体保存log的逻辑需要继承此类 实现record方法
- * Class HandlerBase
+ * Class LogHandlerAbstract
  * @package BaAGee\Log\Base
  */
-abstract class HandlerBase
+abstract class LogHandlerAbstract
 {
     use ProhibitNewClone;
     /**

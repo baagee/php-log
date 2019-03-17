@@ -9,10 +9,10 @@
 namespace BaAGee\Log\Base;
 
 /**
- * Class LogBase
+ * Class LogAbstract
  * @package BaAGee\Log\Base
  */
-abstract class LogBase
+abstract class LogAbstract
 {
     use ProhibitNewClone;
     /**
@@ -57,10 +57,10 @@ abstract class LogBase
             self::$memoryLimit = self::getMemoryLimit($memoryLimitPercent);
 
             if (!empty($handler)) {
-                if (is_subclass_of($handler, HandlerBase::class)) {
+                if (is_subclass_of($handler, LogHandlerAbstract::class)) {
                     self::$handler = $handler;
                 } else {
-                    throw new \Exception($handler . '没有继承' . HandlerBase::class);
+                    throw new \Exception($handler . '没有继承' . LogHandlerAbstract::class);
                 }
             }
             call_user_func(self::$handler . '::init', $handlerConfig);

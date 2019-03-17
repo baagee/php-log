@@ -8,14 +8,14 @@
 
 namespace BaAGee\Log;
 
-use BaAGee\Log\Base\LogBase;
+use BaAGee\Log\Base\LogAbstract;
 use BaAGee\Log\Base\LogInterface;
 
 /**
  * Class Log
  * @package BaAGee\Log
  */
-class Log extends LogBase implements LogInterface
+class Log extends LogAbstract implements LogInterface
 {
     /**
      * @param string $log
