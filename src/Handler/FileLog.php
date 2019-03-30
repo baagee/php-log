@@ -19,7 +19,7 @@ class FileLog extends LogHandlerAbstract
     /**
      * @var array 配置
      */
-    protected static $config = [
+    protected $config = [
         // 基本目录
         'baseLogPath'   => '',
         // 是否按照小时分割
@@ -32,11 +32,11 @@ class FileLog extends LogHandlerAbstract
      * 初始化
      * @param array $config
      */
-    public static function init(array $config = [])
+    public function __construct(array $config = [])
     {
-        parent::init($config);
-        if (empty(self::$config['baseLogPath'])) {
-            self::$config['baseLogPath'] = getcwd() . DIRECTORY_SEPARATOR . 'log';
+        parent::__construct($config);
+        if (empty($this->config['baseLogPath'])) {
+            $this->config['baseLogPath'] = getcwd() . DIRECTORY_SEPARATOR . 'log';
         }
     }
 
@@ -51,12 +51,12 @@ class FileLog extends LogHandlerAbstract
      *                    ]
      * @throws \Exception
      */
-    public static function record(array $logs)
+    public function record(array $logs)
     {
         foreach ($logs as $level => $logArray) {
-            $logFileName = (self::$config['autoSplitHour'] ? date('H_') : '') . $level . '.log';
+            $logFileName = ($this->config['autoSplitHour'] ? date('H_') : '') . $level . '.log';
             $logFile     = implode(DIRECTORY_SEPARATOR,
-                array_filter([self::$config['baseLogPath'], self::$config['subDir'], date('Y_m_d'), $logFileName])
+                array_filter([$this->config['baseLogPath'], $this->config['subDir'], date('Y_m_d'), $logFileName])
             );
             self::makeDir(dirname($logFile));
             file_put_contents($logFile, implode(PHP_EOL, $logArray) . PHP_EOL, FILE_APPEND | LOCK_EX);

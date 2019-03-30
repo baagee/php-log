@@ -31,14 +31,14 @@ include_once __DIR__ . '/../vendor/autoload.php';
 // log缓冲区占用php.ini 设置的内存百分比
 $memoryLimit = 5;// 表示5%
 // Log初始化 试用内置的fileLog保存到文件
-\BaAGee\Log\Log::init($memoryLimit, \BaAGee\Log\Handler\FileLog::class, [
+\BaAGee\Log\Log::init(new \BaAGee\Log\Handler\FileLog([
     // 基本目录
     'baseLogPath'   => getcwd() . DIRECTORY_SEPARATOR . 'log',
     // 是否按照小时分割
     'autoSplitHour' => true,
     // 子目录
     'subDir'        => 'user'
-]);
+]), $memoryLimit);
 \BaAGee\Log\Log::debug('debug啊');
 \BaAGee\Log\Log::info('info啊');
 \BaAGee\Log\Log::notice('notice啊');
@@ -54,19 +54,22 @@ echo 'over' . PHP_EOL;
 ```php
 class MyLogHandler extends \BaAGee\Log\Base\LogHandlerAbstract
 {
-    protected static $config=[
+    protected $config = [
         // 连接MongoDB的配置
     ];
-    public static function init(array $config=[]){
-        parent::init($config);
+
+    public function __construct(array $config = [])
+    {
+        parent::__construct($config);
         // 连接MongoDB
         //。。。。。
     }
-    // 实现record方法
-    public static function record(array $logs)
+
+    public function record(array $logs)
     {
-        print_r('保存Log到mongodb,具体的省略'.PHP_EOL);
-        var_export($logs);die;
+        print_r('保存Log到mongodb' . PHP_EOL);
+        var_export($logs);
+        die;
     }
 }
 ```
@@ -77,7 +80,7 @@ include_once __DIR__.'/../vendor/autoload.php';
 // 引入自定义类
 include_once __DIR__.'/MyLogHandler.php';
 // 初始化Log试用自定义的Log处理类
-\BaAGee\Log\Log::init(5,MyLogHandler::class,['host'=>'127.0.0.1','port'=>9090]);
+\BaAGee\Log\Log::init(new MyLogHandler(['host' => '127.0.0.1', 'port' => 9090]), 5);
 // 开始试用Log
 \BaAGee\Log\Log::debug('debug啊');
 ```

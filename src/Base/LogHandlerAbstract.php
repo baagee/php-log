@@ -15,27 +15,19 @@ namespace BaAGee\Log\Base;
  */
 abstract class LogHandlerAbstract
 {
-    use ProhibitNewClone;
     /**
      * @var array 配置信息
      */
-    protected static $config = [];
-    /**
-     * @var bool 是否初始化
-     */
-    protected static $isInit = false;
+    protected $config = [];
 
     /**
-     * 初始化
+     * LogHandlerAbstract constructor.
      * @param array $config
      */
-    public static function init(array $config = [])
+    public function __construct(array $config)
     {
-        if (static::$isInit === false) {
-            if (!empty($config)) {
-                static::$config = array_merge(static::$config, $config);
-            }
-            static::$isInit = true;
+        if (!empty($config)) {
+            $this->config = array_merge($this->config, $config);
         }
     }
 
@@ -44,5 +36,5 @@ abstract class LogHandlerAbstract
      * @param array $logs
      * @return mixed
      */
-    abstract public static function record(array $logs);
+    abstract public function record(array $logs);
 }

@@ -8,17 +8,21 @@
  */
 class MyLogHandler extends \BaAGee\Log\Base\LogHandlerAbstract
 {
-    protected static $config=[
+    protected $config = [
         // 连接MongoDB的配置
     ];
-    public static function init(array $config=[]){
-        parent::init($config);
+
+    public function __construct(array $config = [])
+    {
+        parent::__construct($config);
         // 连接MongoDB
         //。。。。。
     }
-    public static function record(array $logs)
+
+    public function record(array $logs)
     {
-        print_r('保存Log到mongodb'.PHP_EOL);
-        var_export($logs);die;
+        print_r('保存Log到mongodb' . PHP_EOL);
+        var_export($logs);
+        die;
     }
 }

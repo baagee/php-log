@@ -23,7 +23,7 @@ abstract class LogAbstract
     /**
      * @var string 保存Log的处理类 默认文件保存
      */
-    protected static $handler = \BaAGee\Log\Handler\FileLog::class;
+    protected static $handler = null;
 
     /**
      * @var array 缓存的Log信息
@@ -42,12 +42,11 @@ abstract class LogAbstract
 
     /**
      * log初始化
-     * @param int    $memoryLimitPercent log缓存占用PHP最大内存百分比 默认20 大小限制：>0 && <90
-     * @param string $handler            保存Log的处理类
-     * @param array  $handlerConfig      保存Log的处理类初始化的参数
+     * @param int                $memoryLimitPercent log缓存占用PHP最大内存百分比 默认20 大小限制：>0 && <90
+     * @param LogHandlerAbstract $handler            保存Log的处理类
      * @throws \Exception
      */
-    public static function init(int $memoryLimitPercent = 20, string $handler = '', array $handlerConfig = [])
+    public static function init(LogHandlerAbstract $handler, int $memoryLimitPercent = 20)
     {
         if (self::$isInit === false) {
             if ($memoryLimitPercent < 0 || $memoryLimitPercent > 90) {
@@ -63,7 +62,6 @@ abstract class LogAbstract
                     throw new \Exception($handler . '没有继承' . LogHandlerAbstract::class);
                 }
             }
-            call_user_func(self::$handler . '::init', $handlerConfig);
             register_shutdown_function(self::class . '::commitLogs');
             self::$isInit = true;
         }
@@ -121,7 +119,7 @@ abstract class LogAbstract
      */
     public static function flushLogs()
     {
-        call_user_func(self::$handler . '::record', self::$logs);
+        call_user_func([self::$handler, 'record'], self::$logs);
         self::reset();
     }
 
