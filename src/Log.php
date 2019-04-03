@@ -9,91 +9,36 @@
 namespace BaAGee\Log;
 
 use BaAGee\Log\Base\LogAbstract;
-use BaAGee\Log\Base\LogInterface;
 
 /**
  * Class Log
+ * @method static emergency(string $log, $file = '', $line = 0);
+ * @method static alert(string $log, $file = '', $line = 0);
+ * @method static critical(string $log, $file = '', $line = 0);
+ * @method static debug(string $log, $file = '', $line = 0);
+ * @method static warning(string $log, $file = '', $line = 0);
+ * @method static error(string $log, $file = '', $line = 0);
+ * @method static notice(string $log, $file = '', $line = 0);
+ * @method static info(string $log, $file = '', $line = 0);
  * @package BaAGee\Log
  */
-class Log extends LogAbstract implements LogInterface
+class Log extends LogAbstract
 {
     /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
+     * 允许的Log级别
      */
-    public static function alert(string $log, $file = '', $line = 0)
-    {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
-    }
+    protected const ALLOW_LOG_LEVEL = [
+        'alert', 'critical', 'debug', 'warning', 'error', 'emergency', 'notice', 'info'
+    ];
 
     /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
+     * @param $name
+     * @param $arguments
      */
-    public static function critical(string $log, $file = '', $line = 0)
+    public static function __callStatic($name, $arguments)
     {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
-    }
-
-    /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
-     */
-    public static function debug(string $log, $file = '', $line = 0)
-    {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
-    }
-
-    /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
-     */
-    public static function warning(string $log, $file = '', $line = 0)
-    {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
-    }
-
-    /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
-     */
-    public static function error(string $log, $file = '', $line = 0)
-    {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
-    }
-
-    /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
-     */
-    public static function emergency(string $log, $file = '', $line = 0)
-    {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
-    }
-
-    /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
-     */
-    public static function notice(string $log, $file = '', $line = 0)
-    {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
-    }
-
-    /**
-     * @param string $log
-     * @param string $file
-     * @param int    $line
-     */
-    public static function info(string $log, $file = '', $line = 0)
-    {
-        self::cacheLog(__FUNCTION__, $log, $file, $line);
+        if (in_array($name, self::ALLOW_LOG_LEVEL)) {
+            self::cacheLog($name, $arguments[0], $arguments[1] ?? '', $arguments[2] ?? 0);
+        }
     }
 }
