@@ -26,6 +26,11 @@ abstract class LogAbstract
     protected static $handler = null;
 
     /**
+     * @var LogFormatter
+     */
+    protected static $logFormatter = LogFormatter::class;
+
+    /**
      * @var array 缓存的Log信息
      */
     protected static $logs = [];
@@ -36,7 +41,7 @@ abstract class LogAbstract
     protected static $memoryLimit = 0;
 
     /**
-     * @var int
+     * @var int 当前缓冲区Log大小
      */
     protected static $currentLogSize = 0;
 
@@ -44,9 +49,10 @@ abstract class LogAbstract
      * log初始化
      * @param int                $memoryLimitPercent log缓存占用PHP最大内存百分比 默认20 大小限制：>0 && <90
      * @param LogHandlerAbstract $handler            保存Log的处理类
+     * @param string             $formatter          Log格式化类
      * @throws \Exception
      */
-    public static function init(LogHandlerAbstract $handler, int $memoryLimitPercent = 20)
+    public static function init(LogHandlerAbstract $handler, int $memoryLimitPercent = 20, $formatter = LogFormatter::class)
     {
         if (self::$isInit === false) {
             if ($memoryLimitPercent < 0 || $memoryLimitPercent > 90) {
@@ -60,6 +66,13 @@ abstract class LogAbstract
                     self::$handler = $handler;
                 } else {
                     throw new \Exception($handler . '没有继承' . LogHandlerAbstract::class);
+                }
+            }
+            if (!empty($formatter)) {
+                if ($formatter === LogFormatter::class || is_subclass_of($formatter, LogFormatter::class)) {
+                    self::$logFormatter = $formatter;
+                } else {
+                    throw new \Exception(sprintf('%s没有继承%s', $formatter, LogFormatter::class));
                 }
             }
             register_shutdown_function(self::class . '::commitLogs');
@@ -80,38 +93,6 @@ abstract class LogAbstract
             $IniMemoryLimit = substr($IniMemoryLimit, 0, strlen($IniMemoryLimit) - 1) * 1024 * 1024;
         }
         return intval(intval($IniMemoryLimit) * $memoryPercent);
-    }
-
-    /**
-     * 获取完整的log字符串
-     * @param string $level 级别
-     * @param string $log   log字符串
-     * @param string $file  调用处文件
-     * @param int    $line  调用处行数
-     * @return string
-     */
-    private static function getLogString(string $level, string $log, $file = '', $line = 0)
-    {
-        if ($file == '' || $line == 0) {
-            list($file, $line) = self::getCallFileLine();
-        }
-        // level  time  file:line log
-        return sprintf('[%s] %s %s:%d %s', $level, date('Y-m-d H:i:s'), $file, $line, $log);
-    }
-
-    /**
-     * 获取调用Log的文件和行数
-     * @return array
-     */
-    private static function getCallFileLine()
-    {
-        if (defined('DEBUG_BACKTRACE_IGNORE_ARGS')) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
-        } else {
-            $backtrace = debug_backtrace();
-        }
-        $call = $backtrace[3];
-        return [$call['file'], $call['line']];
     }
 
     /**
@@ -157,7 +138,7 @@ abstract class LogAbstract
             self::flushLogs();
         }
         $level                = strtoupper($level);
-        $logString            = self::getLogString($level, $log, $file, $line);
+        $logString            = self::$logFormatter::format($level, $log, $file, $line);
         self::$currentLogSize += strlen($logString);
         self::$logs[$level][] = $logString;
     }

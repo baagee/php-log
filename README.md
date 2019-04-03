@@ -26,6 +26,7 @@ interface LogInterface
 
 composer require baagee/php-log
 
+##### 基本使用
 ```php
 include_once __DIR__ . '/../vendor/autoload.php';
 // log缓冲区占用php.ini 设置的内存百分比
@@ -48,6 +49,7 @@ $memoryLimit = 5;// 表示5%
 echo 'over' . PHP_EOL;
 ```
 
+##### 自定义Log保存类
 自定义Log保存方式需要继承\BaAGee\Log\Base\LogHandlerAbstract
 
 首先定义自己的Log保存处理类：
@@ -93,5 +95,51 @@ array (
     0 => '[DEBUG] 2019-03-25 06:10:38 /Users/baagee/PhpstormProjects/github/Log/tests/test2.php:11 debug啊',
   ),
 )%
+```
+
+##### 自定义Log字符串格式
+
+默认的Log字符串格式：
+
+```
+// [级别] 时间 文件:行数 Log信息
+[ALERT] 2019-03-14 04:02:03 /Users/baagee/PhpstormProjects/github/Log/tests/test1.php:22 alert啊
+```
+
+当不满足时可以继承`\BaAGee\Log\Base\LogFormatter`重写`getLogString`方法，返回自定义的Log格式
+
+示例代码：
+
+```php
+include_once __DIR__ . '/../vendor/autoload.php';
+// 自定义Log格式
+class LogFormatter extends \BaAGee\Log\Base\LogFormatter
+{
+    // 重写`getLogString`方法
+    protected static function getLogString($level, $log, $file, $line)
+    {
+        return sprintf('level=%s file=%s line=%d log=%s', $level, $file, $line, $log);
+    }
+}
+
+$memoryLimit = 5;
+// 传入自定义的Log格式化类名
+\BaAGee\Log\Log::init(new \BaAGee\Log\Handler\FileLog([
+    // 基本目录
+    'baseLogPath'   => getcwd() . DIRECTORY_SEPARATOR . 'log',
+    // 是否按照小时分割
+    'autoSplitHour' => true,
+    // 子目录
+    'subDir'        => 'user'
+]), $memoryLimit, LogFormatter::class);
+
+// 其他使用方式不变
+\BaAGee\Log\Log::debug('debug啊');
+\BaAGee\Log\Log::info('info啊');
+\BaAGee\Log\Log::notice('notice啊');
+//刷新log缓冲区
+\BaAGee\Log\Log::flushLogs();
+\BaAGee\Log\Log::alert('alert啊');
+echo 'over' . PHP_EOL;
 ```
 ###### 具体代码请查看tests目录
