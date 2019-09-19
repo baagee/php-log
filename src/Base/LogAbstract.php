@@ -118,11 +118,16 @@ abstract class LogAbstract
      */
     public static function commitLogs()
     {
-        if (function_exists('fastcgi_finish_request')) {
-            //响应完成, 关闭连接 ,以后的输出和报错不会显示
-            fastcgi_finish_request();
+        try {
+            if (function_exists('fastcgi_finish_request')) {
+                //响应完成, 关闭连接 ,以后的输出和报错不会显示
+                fastcgi_finish_request();
+            }
+            self::flushLogs();
+        } catch (\Throwable $e) {
+            // 捕获所有抛出的错误 保证不会影响到后面的register_shutdown_function
+            // TODO something
         }
-        self::flushLogs();
     }
 
     /**
