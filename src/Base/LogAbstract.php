@@ -137,15 +137,22 @@ abstract class LogAbstract
      * @param string $file  调用处文件
      * @param int    $line  调用处行数
      */
-    protected static function cacheLog(string $level, string $log, $file = '', $line = 0)
+    protected static function saveLog(string $level, string $log, $file = '', $line = 0)
     {
-        if (self::isOutOfMemory()) {
+        $level     = strtoupper($level);
+        $logString = self::$logFormatter::format($level, $log, $file, $line);
+        if (PHP_SAPI == 'cli') {
+            // 命令行模式下实时保存
+            self::$logs[$level][] = $logString;
             self::flushLogs();
+        } else {
+            // cgi模式下判断是否超过缓冲区，满了就刷新保存，否则暂存缓冲区
+            if (self::isOutOfMemory()) {
+                self::flushLogs();
+            }
+            self::$currentLogSize += strlen($logString);
+            self::$logs[$level][] = $logString;
         }
-        $level                = strtoupper($level);
-        $logString            = self::$logFormatter::format($level, $log, $file, $line);
-        self::$currentLogSize += strlen($logString);
-        self::$logs[$level][] = $logString;
     }
 
     /**
