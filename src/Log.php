@@ -38,7 +38,7 @@ class Log extends LogAbstract
     public static function __callStatic($name, $arguments)
     {
         if (in_array($name, self::ALLOW_LOG_LEVEL)) {
-            self::cacheLog($name, $arguments[0], $arguments[1] ?? '', $arguments[2] ?? 0);
+            self::saveLog($name, $arguments[0], $arguments[1] ?? '', $arguments[2] ?? 0);
         }
     }
 }
