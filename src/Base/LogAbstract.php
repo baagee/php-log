@@ -19,6 +19,10 @@ abstract class LogAbstract
      * @var bool 是否初始化Log
      */
     protected static $isInit = false;
+    /**
+     * @var bool Cli下是否缓存
+     */
+    protected static $cliCache = false;
 
     /**
      * @var string 保存Log的处理类 默认文件保存
@@ -50,9 +54,10 @@ abstract class LogAbstract
      * @param int                $memoryLimitPercent log缓存占用PHP最大内存百分比 默认20 大小限制：>0 && <90
      * @param LogHandlerAbstract $handler            保存Log的处理类
      * @param string             $formatter          Log格式化类
+     * @param bool               $cliCache           cli下是否缓存
      * @throws \Exception
      */
-    public static function init(LogHandlerAbstract $handler, int $memoryLimitPercent = 20, $formatter = LogFormatter::class)
+    public static function init(LogHandlerAbstract $handler, int $memoryLimitPercent = 20, $formatter = LogFormatter::class, bool $cliCache = false)
     {
         if (self::$isInit === false) {
             if ($memoryLimitPercent < 0 || $memoryLimitPercent > 90) {
@@ -60,7 +65,7 @@ abstract class LogAbstract
                 $memoryLimitPercent = 20;
             }
             self::$memoryLimit = self::getMemoryLimit($memoryLimitPercent);
-
+            self::$cliCache    = $cliCache;
             if (!empty($handler)) {
                 if (is_subclass_of($handler, LogHandlerAbstract::class)) {
                     self::$handler = $handler;
@@ -141,8 +146,8 @@ abstract class LogAbstract
     {
         $level     = strtoupper($level);
         $logString = self::$logFormatter::format($level, $log, $file, $line);
-        if (PHP_SAPI == 'cli') {
-            // 命令行模式下实时保存
+        if (PHP_SAPI == 'cli' && self::$cliCache === false) {
+            // 命令行模式下不缓存时 实时保存
             self::$logs[$level][] = $logString;
             self::flushLogs();
         } else {
