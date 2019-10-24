@@ -19,14 +19,18 @@ class LogFormatter
      * @param string $log   log字符串
      * @param string $file  调用处文件
      * @param int    $line  调用处行数
+     * @param int    $time  记录时间
      * @return string
      */
-    final public static function format($level, $log, $file = '', $line = 0)
+    final public static function format($level, $log, $file = '', $line = 0, $time = 0)
     {
         if ($file == '' || $line == 0) {
             list($file, $line) = self::getLogCallFileLine();
         }
-        return static::getLogString($level, $log, $file, $line);
+        if ($time == 0) {
+            $time = microtime(true);
+        }
+        return static::getLogString($level, $log, $file, $line, $time);
     }
 
     /**
@@ -35,11 +39,14 @@ class LogFormatter
      * @param string $log   log字符串
      * @param string $file  调用处文件
      * @param int    $line  调用处行数
+     * @param int    $time  记录时间
      * @return string
      */
-    protected static function getLogString($level, $log, $file, $line)
+    protected static function getLogString($level, $log, $file, $line, $time)
     {
-        return sprintf('%s %s %s:%d %s', $level, date('Y-m-d H:i:s'), $file, $line, $log);
+        list($t1, $t2) = explode('.', $time);
+        $time = sprintf('%s.%s', date('Y-m-d H:i:s', $t1), $t2);
+        return sprintf('%s %s %s:%d %s', $level, $time, $file, $line, $log);
     }
 
     /**

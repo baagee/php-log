@@ -105,7 +105,14 @@ abstract class LogAbstract
      */
     public static function flushLogs()
     {
-        call_user_func([self::$handler, 'record'], self::$logs);
+        $logArray = [];
+        foreach (self::$logs as $level => $logArr) {
+            foreach ($logArr as $log) {
+                $logArray[$level][] = self::$logFormatter::format($level, $log['log'], $log['file'], $log['line'], $log['time']);
+            }
+        }
+
+        call_user_func([self::$handler, 'record'], $logArray);
         self::reset();
     }
 
@@ -144,19 +151,32 @@ abstract class LogAbstract
      */
     protected static function saveLog(string $level, string $log, $file = '', $line = 0)
     {
-        $level     = strtoupper($level);
-        $logString = self::$logFormatter::format($level, $log, $file, $line);
+        $level = strtoupper($level);
+        // $logString = self::$logFormatter::format($level, $log, $file, $line);
+
+        $logInfo = [
+            // 'level' => $level,
+            'log'  => $log,
+            'time' => microtime(true),
+            'file' => $file,
+            'line' => $line
+        ];
         if (PHP_SAPI == 'cli' && self::$cliCache === false) {
             // 命令行模式下不缓存时 实时保存
-            self::$logs[$level][] = $logString;
+            // self::$logs[$level][] = $logString;
+
+            self::$logs[$level][] = $logInfo;
             self::flushLogs();
         } else {
             // cgi模式下判断是否超过缓冲区，满了就刷新保存，否则暂存缓冲区
             if (self::isOutOfMemory()) {
                 self::flushLogs();
             }
-            self::$currentLogSize += strlen($logString);
-            self::$logs[$level][] = $logString;
+            // 2倍模拟
+            self::$currentLogSize += strlen($log) * 2;
+            self::$logs[$level][] = $logInfo;
+
+            // self::$logs[$level][] = $logString;
         }
     }
 

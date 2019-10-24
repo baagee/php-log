@@ -10,9 +10,9 @@ include_once __DIR__ . '/../vendor/autoload.php';
 
 class LogFormatter extends \BaAGee\Log\Base\LogFormatter
 {
-    protected static function getLogString($level, $log, $file, $line)
+    protected static function getLogString($level, $log, $file, $line, $time)
     {
-        return sprintf('level=%s file=%s line=%d log=%s', $level, $file, $line, $log);
+        return sprintf('level=%s time=%s file=%s line=%d log=%s', $level, date('Y-m-d H:i:s', $time), $file, $line, $log);
     }
 }
 
