@@ -143,6 +143,21 @@ abstract class LogAbstract
     }
 
     /**
+     * 获取调用Log的文件和行数
+     * @return array
+     */
+    final private static function getLogCallFileLine()
+    {
+        if (defined('DEBUG_BACKTRACE_IGNORE_ARGS')) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        } else {
+            $backtrace = debug_backtrace();
+        }
+        $call = $backtrace[2] ?? [];
+        return [$call['file'] ?? '', $call['line'] ?? 0];
+    }
+
+    /**
      * 缓存Log字符串
      * @param string $level 级别
      * @param string $log   log字符串
@@ -151,6 +166,9 @@ abstract class LogAbstract
      */
     protected static function saveLog(string $level, string $log, $file = '', $line = 0)
     {
+        if (empty($file) || empty($line)) {
+            list($file, $line) = self::getLogCallFileLine();
+        }
         $level = strtoupper($level);
         // $logString = self::$logFormatter::format($level, $log, $file, $line);
 
