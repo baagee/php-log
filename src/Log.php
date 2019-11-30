@@ -25,19 +25,12 @@ use BaAGee\Log\Base\LogAbstract;
 class Log extends LogAbstract
 {
     /**
-     * 允许的Log级别
-     */
-    protected const ALLOW_LOG_LEVEL = [
-        'alert', 'critical', 'debug', 'warning', 'error', 'emergency', 'notice', 'info'
-    ];
-
-    /**
      * @param $name
      * @param $arguments
      */
     public static function __callStatic($name, $arguments)
     {
-        if (in_array($name, self::ALLOW_LOG_LEVEL)) {
+        if (in_array($name, LogLevel::getAllowedLevels())) {
             self::saveLog($name, $arguments[0], $arguments[1] ?? '', $arguments[2] ?? 0);
         }
     }
