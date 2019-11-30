@@ -44,12 +44,25 @@ final class LogLevel
     /**
      * 系统不可用
      */
-    const EMERGENCY = 'emergency';
+    const           EMERGENCY = 'emergency';
+
+    /**
+     * 所有的级别
+     */
+    protected const ALL_LEVELS = [
+        self::DEBUG, self::INFO, self::NOTICE, self::WARNING,
+        self::ERROR, self::CRITICAL, self::ALERT, self::EMERGENCY
+    ];
 
     /**
      * @var array 生产环境隐藏的Log级别
      */
-    protected static $product_hidden_level = [];
+    protected static $productHiddenLevel = [];
+
+    /**
+     * @var array 允许的Log级别 默认是全部都允许
+     */
+    protected static $allowedLevels = self::ALL_LEVELS;
 
     /**
      * 设置生产环境隐藏的Log级别
@@ -57,9 +70,13 @@ final class LogLevel
      */
     public static function setProductHiddenLevel(array $levels)
     {
-        self::$product_hidden_level = array_filter(array_map('strtolower', $levels), function ($v) {
+        self::$productHiddenLevel = array_filter(array_map('strtolower', $levels), function ($v) {
             return in_array($v, self::getAllLevels());
         });
+        if (!empty(self::$productHiddenLevel)) {
+            // 修改允许的Log级别
+            self::$allowedLevels = array_values(array_diff(self::getAllLevels(), self::$productHiddenLevel));
+        }
     }
 
     /**
@@ -68,7 +85,7 @@ final class LogLevel
      */
     public static function getProductHiddenLevel(): array
     {
-        return self::$product_hidden_level;
+        return self::$productHiddenLevel;
     }
 
     /**
@@ -77,10 +94,7 @@ final class LogLevel
      */
     public static function getAllLevels()
     {
-        return [
-            self::DEBUG, self::INFO, self::NOTICE, self::WARNING,
-            self::ERROR, self::CRITICAL, self::ALERT, self::EMERGENCY
-        ];
+        return self::ALL_LEVELS;
     }
 
     /**
@@ -89,6 +103,6 @@ final class LogLevel
      */
     public static function getAllowedLevels()
     {
-        return array_values(array_diff(self::getAllLevels(), self::getProductHiddenLevel()));
+        return self::$allowedLevels;
     }
 }
