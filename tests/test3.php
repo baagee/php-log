@@ -26,10 +26,17 @@ $memoryLimit = 5;
     // 子目录
     'subDir'        => 'user'
 ]), $memoryLimit, LogFormatter::class);
+//在命令行执行脚本输出Log 便于调试
+\BaAGee\Log\Log::printOnStdout(true);
 \BaAGee\Log\Log::debug('debug啊');
 \BaAGee\Log\Log::info('info啊');
 \BaAGee\Log\Log::notice('notice啊');
 //刷新log缓冲区
 \BaAGee\Log\Log::flushLogs();
+\BaAGee\Log\Log::warning("warning 啊");
+\BaAGee\Log\Log::error("error 啊");
+
+\BaAGee\Log\Log::critical("critical 啊");
 \BaAGee\Log\Log::alert('alert啊');
+\BaAGee\Log\Log::emergency("emergency 啊");
 echo 'over' . PHP_EOL;

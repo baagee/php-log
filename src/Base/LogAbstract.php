@@ -8,6 +8,8 @@
 
 namespace BaAGee\Log\Base;
 
+use BaAGee\Log\LogLevel;
+
 /**
  * Class LogAbstract
  * @package BaAGee\Log\Base
@@ -15,6 +17,10 @@ namespace BaAGee\Log\Base;
 abstract class LogAbstract
 {
     use ProhibitNewClone;
+    /**
+     * @var bool cli模式下是否在命令行下输出Log
+     */
+    protected static $printOnStdout = false;
     /**
      * @var bool 是否初始化Log
      */
@@ -50,22 +56,40 @@ abstract class LogAbstract
     protected static $currentLogSize = 0;
 
     /**
+     * 是否在命令行下运行脚本直接输出Log
+     * @param bool $open
+     * @return bool
+     */
+    final public static function printOnStdout(bool $open)
+    {
+        //只有在命令行下运行脚本才会输出Log
+        if (PHP_SAPI == 'cli') {
+            self::$printOnStdout = $open;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * log初始化
      * @param int                $memoryLimitPercent log缓存占用PHP最大内存百分比 默认20 大小限制：>0 && <90
      * @param LogHandlerAbstract $handler            保存Log的处理类
      * @param string             $formatter          Log格式化类
      * @param bool               $cliCache           cli下是否缓存
+     * @param bool               $printOnStdout      cli下是否直接输出Log
      * @throws \Exception
      */
-    public static function init(LogHandlerAbstract $handler, int $memoryLimitPercent = 20, $formatter = LogFormatter::class, bool $cliCache = false)
+    public static function init(LogHandlerAbstract $handler, int $memoryLimitPercent = 20, $formatter = LogFormatter::class,
+                                bool $cliCache = false, bool $printOnStdout = false)
     {
         if (self::$isInit === false) {
             if ($memoryLimitPercent < 0 || $memoryLimitPercent > 90) {
                 // 如果百分比小于0 或者大于90% 就使用20%
                 $memoryLimitPercent = 20;
             }
-            self::$memoryLimit = self::getMemoryLimit($memoryLimitPercent);
-            self::$cliCache    = $cliCache;
+            self::$memoryLimit   = self::getMemoryLimit($memoryLimitPercent);
+            self::$cliCache      = $cliCache;
+            self::$printOnStdout = $printOnStdout;
             if (!empty($handler)) {
                 if (is_subclass_of($handler, LogHandlerAbstract::class)) {
                     self::$handler = $handler;
@@ -196,6 +220,36 @@ abstract class LogAbstract
 
             // self::$logs[$level][] = $logString;
         }
+        if (PHP_SAPI == 'cli' && self::$printOnStdout) {
+            self::printCliLog($level, $log, $file, $line);
+        }
+    }
+
+    /**
+     * cli下直接输出Log
+     * @param string $level
+     * @param string $log
+     * @param string $file
+     * @param int    $line
+     */
+    private static function printCliLog(string $level, $log, string $file, $line)
+    {
+        $str   = trim(self::$logFormatter::format($level, $log, $file, $line));
+        $level = strtolower($level);
+        //给点颜色看看
+        if (in_array($level, [LogLevel::DEBUG, LogLevel::INFO, LogLevel::NOTICE,])) {
+            //浅绿
+            echo sprintf("\033[0;32m%s\033[0m", $str);
+        } elseif (in_array($level, [LogLevel::WARNING, LogLevel::ERROR,])) {
+            // 黄
+            echo sprintf("\e[33;33m%s\e[0m", $str);
+        } elseif (in_array($level, [LogLevel::CRITICAL, LogLevel::ALERT, LogLevel::EMERGENCY,])) {
+            // 红
+            echo sprintf("\e[31;31m%s\e[0m", $str);
+        } else {
+            echo $str;
+        }
+        echo PHP_EOL;
     }
 
     /**

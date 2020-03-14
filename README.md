@@ -51,6 +51,8 @@ if ($debug == false) {
 
 \BaAGee\Log\Log::debug('debug啊');
 \BaAGee\Log\Log::info('info啊');
+//开启在命令行执行脚本输出Log 便于调试
+\BaAGee\Log\Log::printOnStdout(true);
 \BaAGee\Log\Log::notice('notice啊');
 //刷新log缓冲区
 \BaAGee\Log\Log::flushLogs();

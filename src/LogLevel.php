@@ -44,7 +44,7 @@ final class LogLevel
     /**
      * 系统不可用
      */
-    const           EMERGENCY = 'emergency';
+    const EMERGENCY = 'emergency';
 
     /**
      * 所有的级别
