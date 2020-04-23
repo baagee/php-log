@@ -19,14 +19,8 @@ $logPath = __DIR__ . '/..' . DIRECTORY_SEPARATOR . 'log';
     // 子目录
     'subDir' => 'ben'
 ]), $memoryLimit, \BaAGee\Log\Base\LogFormatter::class, true, false);
+SeasLog::setBasePath($logPath);
 
-$debug = false;
-if ($debug == false) {
-    // 设置隐藏的Log 不输出
-    \BaAGee\Log\LogLevel::setProductHiddenLevel([
-        \BaAGee\Log\LogLevel::DEBUG,
-    ]);
-}
 $s = microtime(true);
 for ($i = 0; $i <= 10000; $i++) {
     \BaAGee\Log\Log::info('info啊');
@@ -36,8 +30,6 @@ echo 'MyLog TIME:' . ($e - $s) * 1000;
 
 // seasLog测试
 $s = microtime(true);
-SeasLog::setBasePath($logPath);
-
 for ($i = 0; $i <= 10000; $i++) {
     SeasLog::info('info啊');
 }
