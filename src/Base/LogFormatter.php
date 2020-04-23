@@ -41,7 +41,7 @@ class LogFormatter
      */
     protected static function getLogString($level, $log, $file, $line, $time)
     {
-        list($t1, $t2) = explode('.', $time);
+        list($t1, $t2) = explode('.', number_format($time, 6, '.', ''));
         $time = sprintf('%s.%s', date('Y-m-d H:i:s', $t1), $t2);
         return sprintf('%s %s %s:%d %s', $level, $time, $file, $line, $log);
     }
