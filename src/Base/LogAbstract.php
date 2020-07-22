@@ -17,10 +17,15 @@ use BaAGee\Log\LogLevel;
 abstract class LogAbstract
 {
     use ProhibitNewClone;
+
     /**
      * @var bool cli模式下是否在命令行下输出Log
      */
     protected static $printOnStdout = false;
+    /**
+     * @var callable 在写日志时触发
+     */
+    protected static $onWriteFunc = [];
     /**
      * @var bool 是否初始化Log
      */
@@ -65,8 +70,20 @@ abstract class LogAbstract
         //只有在命令行下运行脚本才会输出Log
         if (PHP_SAPI == 'cli') {
             self::$printOnStdout = $open;
+            return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * 监听写日志事件
+     * @param callable $func
+     */
+    public static function listenOnWrite(callable $func)
+    {
+        if (is_callable($func)) {
+            self::$onWriteFunc[] = $func;
         }
     }
 
@@ -87,8 +104,8 @@ abstract class LogAbstract
                 // 如果百分比小于0 或者大于90% 就使用20%
                 $memoryLimitPercent = 20;
             }
-            self::$memoryLimit   = self::getMemoryLimit($memoryLimitPercent);
-            self::$cliCache      = $cliCache;
+            self::$memoryLimit = self::getMemoryLimit($memoryLimitPercent);
+            self::$cliCache = $cliCache;
             self::$printOnStdout = $printOnStdout;
             if (!empty($handler)) {
                 if (is_subclass_of($handler, LogHandlerAbstract::class)) {
@@ -116,7 +133,7 @@ abstract class LogAbstract
      */
     private static function getMemoryLimit($memoryLimitPercent)
     {
-        $memoryPercent  = $memoryLimitPercent / 100;
+        $memoryPercent = $memoryLimitPercent / 100;
         $IniMemoryLimit = ini_get('memory_limit');
         if ('M' == substr($IniMemoryLimit, -1)) {
             $IniMemoryLimit = substr($IniMemoryLimit, 0, strlen($IniMemoryLimit) - 1) * 1024 * 1024;
@@ -146,7 +163,7 @@ abstract class LogAbstract
     private static function reset()
     {
         self::$currentLogSize = 0;
-        self::$logs           = [];
+        self::$logs = [];
     }
 
     /**
@@ -198,11 +215,12 @@ abstract class LogAbstract
 
         $logInfo = [
             // 'level' => $level,
-            'log'  => $log,
+            'log' => $log,
             'time' => microtime(true),
             'file' => $file,
             'line' => $line
         ];
+        self::triggerOnWrite($level, $logInfo);
         if (PHP_SAPI == 'cli' && self::$cliCache === false) {
             // 命令行模式下不缓存时 实时保存
             // self::$logs[$level][] = $logString;
@@ -226,6 +244,26 @@ abstract class LogAbstract
     }
 
     /**
+     * 触发写日志事件
+     * @param string $level
+     * @param array  $logInfo
+     */
+    protected static function triggerOnWrite($level, $logInfo)
+    {
+        if (!empty(self::$onWriteFunc)) {
+            foreach (self::$onWriteFunc as $func) {
+                if (is_callable($func)) {
+                    try {
+                        call_user_func($func, $level, $logInfo);
+                    } catch (\Exception $e) {
+
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * cli下直接输出Log
      * @param string $level
      * @param string $log
@@ -234,7 +272,7 @@ abstract class LogAbstract
      */
     private static function printCliLog(string $level, $log, string $file, $line)
     {
-        $str   = trim(self::$logFormatter::format($level, $log, $file, $line));
+        $str = trim(self::$logFormatter::format($level, $log, $file, $line));
         $level = strtolower($level);
         //给点颜色看看
         if (in_array($level, [LogLevel::DEBUG, LogLevel::INFO, LogLevel::NOTICE,])) {

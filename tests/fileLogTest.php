@@ -51,4 +51,20 @@ class fileLogTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertEquals(1, 1);
     }
+
+    public function testEvent()
+    {
+        \BaAGee\Log\Log::listenOnWrite(function ($level, $logArr) {
+            $logArr['time']=time();
+            echo sprintf('%s: %s' . PHP_EOL, $level, json_encode($logArr, JSON_UNESCAPED_UNICODE));
+        });
+        \BaAGee\Log\Log::debug('debug啊');
+        \BaAGee\Log\Log::info('info啊');
+        \BaAGee\Log\Log::notice('notice啊');
+        \BaAGee\Log\Log::alert('alert啊');
+        \BaAGee\Log\Log::warning('warning');
+
+        echo 'over' . PHP_EOL;
+        $this->assertEquals(1, 1);
+    }
 }
