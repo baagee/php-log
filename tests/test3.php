@@ -20,11 +20,11 @@ $memoryLimit = 5;
 
 \BaAGee\Log\Log::init(new \BaAGee\Log\Handler\FileLog([
     // 基本目录
-    'baseLogPath'   => getcwd() . DIRECTORY_SEPARATOR . 'log',
+    'base_log_path'   => getcwd() . DIRECTORY_SEPARATOR . 'log',
     // 是否按照小时分割
-    'autoSplitHour' => true,
+    'auto_split_hour' => true,
     // 子目录
-    'subDir'        => 'user'
+    'sub_dir'        => 'user'
 ]), $memoryLimit, LogFormatter::class);
 //在命令行执行脚本输出Log 便于调试
 \BaAGee\Log\Log::printOnStdout(true);

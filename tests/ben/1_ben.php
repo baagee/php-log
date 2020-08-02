@@ -13,11 +13,11 @@ $logPath = __DIR__ . '/..' . DIRECTORY_SEPARATOR . 'log';
 // log测试
 \BaAGee\Log\Log::init(new \BaAGee\Log\Handler\FileLog([
     // 基本目录
-    'baseLogPath' => $logPath,
+    'base_log_path' => $logPath,
     // 是否按照小时分割
-    'autoSplitHour' => true,
+    'auto_split_hour' => true,
     // 子目录
-    'subDir' => 'ben'
+    'sub_dir' => 'ben'
 ]), $memoryLimit, \BaAGee\Log\Base\LogFormatter::class, true, false);
 SeasLog::setBasePath($logPath);
 
